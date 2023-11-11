@@ -1,37 +1,13 @@
+#ifndef __USER_CONTROL_H__
+#define __USER_CONTROL_H__
+
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
 #include <conio.h>
-#include "block.h"
-#pragma warning(disable:4996)
-
-#define UP 72
-#define DOWN 80
-#define LEFT 75
-#define RIGHT 77
-#define SPACE 32
-
-#define GBOARD_ORIGIN_X 4
-#define GBOARD_ORIGIN_Y 2
-
-typedef struct Moogi
-{
-	struct Moogi* left;
-	struct Moogi* right;
-	COORD position;
-}Moogi;
-
-int** gameBoardInfo;
-int direction = 0;
-int stage = -1;
-int stageBestScore[5];
-int speed = 20;
-int shield = 0;
-int fever[5] = { 0,0,0,0,0 };
-Moogi* head;
-Moogi* tail;
-
-void SetCurrentCursorPos(int x, int y) {}
+#include "UserControl.h"
+#include "MacroAndGlobal.h"
+#include "OtherModule.h"
 
 void inStartScreenKeyInput();
 int inPlayKeyInput();
@@ -46,12 +22,6 @@ COORD nextHeadPos();
 void drawHead(COORD headPos);
 void eraseTail();
 Moogi* getNode(Moogi* left, Moogi* right, COORD position);
-
-int main()
-{
-
-	return 0;
-}
 
 void inStartScreenKeyInput()
 {
@@ -170,7 +140,7 @@ int pausePlay() // 일시정지 -> 재시작 혹은 리셋을 기다림
 		if (_kbhit() != 0)
 		{
 			int key = _getch();
-			
+
 			if (key == SPACE) break;
 			else if (key == DOWN) isDone = 1;
 			else if (key == UP) isDone = 0;
@@ -191,7 +161,7 @@ void goToStartScreen()
 	speed = 20;
 	shield = 0;
 	for (int i = 0; i < 5; i++) fever[i] = 0;
-	
+
 	Moogi* p = head, * pi = p;
 	while (p != NULL)
 	{
@@ -209,9 +179,9 @@ void goToStartScreen()
 int detectCollision(int posX, int posY) // 충돌 감지
 {
 	int arrX = (posX - GBOARD_ORIGIN_X) / 2;
-	int arrY = (posY - GBOARD_ORIGIN_Y) / 2;
+	int arrY = (posY - GBOARD_ORIGIN_Y);
 
-	switch (gameBoardInfo[arrX][arrY])
+	switch (gameBoardInfo[arrY][arrX])
 	{
 	case 0:
 		return 0;
@@ -219,6 +189,14 @@ int detectCollision(int posX, int posY) // 충돌 감지
 		return 1;
 	case 2:
 		return 2;
+	case 3:
+		return 3;
+	case 4:
+		return 4;
+	case 5:
+		return 5;
+	case 6:
+		return 6;
 	default:
 		return 0;
 	}
@@ -255,7 +233,11 @@ void drawHead(COORD headPos) // 이무기의 이동을 출력(head)
 {
 	Moogi* node = getNode(NULL, head, headPos);
 	head = node;
-	
+
+	int arrX = (headPos.X - GBOARD_ORIGIN_X) / 2;
+	int arrY = (headPos.Y - GBOARD_ORIGIN_Y);
+	gameBoardInfo[arrY][arrX] = 2;
+
 	SetCurrentCursorPos(head->position.X, head->position.Y);
 	printf("◐");
 	SetCurrentCursorPos(head->right->position.X, head->right->position.Y);
@@ -264,6 +246,10 @@ void drawHead(COORD headPos) // 이무기의 이동을 출력(head)
 
 void eraseTail() // 이무기의 이동을 출력(tail)
 {
+	int arrX = (tail->position.X - GBOARD_ORIGIN_X) / 2;
+	int arrY = (tail->position.Y - GBOARD_ORIGIN_Y);
+	gameBoardInfo[arrY][arrX] = 0;
+
 	SetCurrentCursorPos(tail->position.X, tail->position.Y);
 	printf("  ");
 
@@ -282,3 +268,5 @@ Moogi* getNode(Moogi* left, Moogi* right, COORD position)
 
 	return node;
 }
+
+#endif
